@@ -4,44 +4,24 @@
 
 Thurin is a privacy-preserving identity verification protocol. Users verify their identity once using a mobile driver's license (mDL), then receive a soulbound token (SBT) that proves they're a unique human—without revealing any personal information.
 
-## How It Works
+## Scry
 
-1. **User verifies** - Connect wallet, share mDL via Apple/Google Wallet
-2. **ZK proof generated** - Proves validity without revealing PII
-3. **SBT minted** - On-chain proof of unique human status
-4. **dApps check** - One line of code to verify users
+[Scry](https://scry.thurin.id) is Thurin's identity lookup tool. Look up any Ethereum address, ENS name, or PGP fingerprint to view on-chain identity claims and verified proofs.
 
-## Integrate Thurin
+- [Thurin Proofs](/scry/proofs) — Link your PGP key to your online accounts with verifiable, bidirectional proofs
+- [Managing Notations](/scry/gnupg) — Add, list, and remove proof notations from your PGP key
+- Providers: [DNS](/scry/dns) · [Farcaster](/scry/farcaster) · [GitHub](/scry/github)
 
-### JavaScript/TypeScript
+## SDK
 
-```typescript
-import { ThurinSBT } from '@thurinlabs/sdk';
-import { createPublicClient, http } from 'viem';
-import { base } from 'viem/chains';
+Integrate Thurin verification into your dApp with a single line of code.
 
-const client = createPublicClient({ chain: base, transport: http() });
-const thurin = new ThurinSBT(client);
-
-// Check if user is verified
-const isVerified = await thurin.isValid(userAddress);
-```
-
-### Solidity
-
-```solidity
-import { ThurinSBT } from "@thurinlabs/contracts/interfaces/ThurinSBT.sol";
-
-contract MyDapp {
-    function doThing() external {
-        require(ThurinSBT.isValid(msg.sender), "Not verified");
-        // User is a verified unique human
-    }
-}
-```
+- [JavaScript SDK](/sdk) — Check SBT status from JavaScript/TypeScript
+- [Solidity](/contracts) — On-chain verification in smart contracts
 
 ## Links
 
-- [App](https://app.thurin.id) - Get verified
+- [Scry](https://scry.thurin.id) - Look up identities
+- [Signet](https://signet.thurin.id) - Create identity claims
 - [Website](https://thurin.id) - Learn more
 - [GitHub](https://github.com/thurin-labs) - Source code
