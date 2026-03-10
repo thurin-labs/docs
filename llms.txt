@@ -1,0 +1,596 @@
+# Thurin — LLM Reference
+
+> This file is a self-contained reference for AI agents helping users set up Thurin identity claims and proofs.
+> It consolidates all docs from https://docs.thurin.id into a single flat file.
+> Source: https://docs.thurin.id/llms.txt
+
+---
+
+## What is Thurin?
+
+Thurin is a privacy-preserving identity verification protocol. Users verify their identity once using a mobile driver's license (mDL), then receive a soulbound token (SBT) that proves they're a unique human — without revealing personal information.
+
+Key tools:
+- **Scry** (https://scry.thurin.id) — Identity lookup. Look up any Ethereum address, ENS name, or PGP fingerprint to view on-chain identity claims and verified proofs.
+- **Signet** (https://signet.thurin.id) — Create on-chain identity claims by registering your PGP key.
+
+---
+
+## Getting Started — Onboarding Checklist
+
+Before setting up Thurin Proofs, the user needs three things: GnuPG, a PGP key on a keyserver, and an on-chain registration via Signet. Walk through these questions in order:
+
+### 1. Is GnuPG installed?
+
+Check:
+
+```bash
+gpg --version
+```
+
+GnuPG 2.2+ is required. 2.4+ is recommended (ships with Ed25519 as a default option).
+
+**If not installed or version is too old:**
+
+- **macOS:** `brew install gnupg` (requires [Homebrew](https://brew.sh))
+- **Debian/Ubuntu:** `sudo apt install gnupg`
+- **Fedora/RHEL:** `sudo dnf install gnupg2`
+- **Arch:** `sudo pacman -S gnupg`
+
+On macOS, the system may have an outdated GPG or none at all. Homebrew is the most reliable path. After installing, confirm with `gpg --version` — look for `gpg (GnuPG) 2.x.x`.
+
+### 2. Does the user have a PGP key?
+
+Check:
+
+```bash
+gpg --list-keys
+```
+
+If no keys are listed, create one. **Ed25519 is recommended** — it's fast, produces small keys/signatures, and is widely supported.
+
+**Creating a key (interactive):**
+
+```bash
+gpg --full-generate-key
+```
+
+When prompted:
+1. **Key type:** Select `EdDSA` (Ed25519). This is typically option 9 or 10, depending on GPG version. If EdDSA is not listed, the GPG version is too old — upgrade first.
+2. **Key size:** Ed25519 is fixed at 256 bits (no prompt for this).
+3. **Expiration:** `0` for no expiration, or set a reasonable period (e.g., `2y` for 2 years). Expiration can be extended later.
+4. **Name and email:** Use the real name and email the user wants associated with their identity.
+5. **Passphrase:** The user must enter this themselves — it protects the private key.
+
+**Creating a key (non-interactive, one-liner):**
+
+```bash
+gpg --quick-gen-key "Full Name <email@example.com>" ed25519
+```
+
+This creates an Ed25519 signing key with a Cv25519 encryption subkey. The user will still be prompted for a passphrase.
+
+After creation, get the fingerprint:
+
+```bash
+gpg --fingerprint email@example.com
+```
+
+The fingerprint is the 40-character hex string (spaces are cosmetic). Example output:
+
+```
+pub   ed25519 2024-11-23 [SC]
+      03E5 3D80 7CE3 8C13 0ED4  2ECE CD3D 0D7F 0C9E 5FB8
+uid           [ultimate] Alice <alice@example.com>
+sub   cv25519 2024-11-23 [E]
+```
+
+The fingerprint here is `03E53D807CE38C130ED42ECECD3D0D7F0C9E5FB8`.
+
+### 3. Is the key on the keyserver?
+
+Check by visiting: `https://keys.openpgp.org/search?q=FINGERPRINT`
+
+Or from the command line:
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --search-keys email@example.com
+```
+
+**If the key is not on the keyserver:**
+
+Upload it:
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+Or export and upload via curl:
+
+```bash
+gpg --export --armor YOUR_FINGERPRINT | curl -T - https://keys.openpgp.org
+```
+
+Or upload via the web interface at https://keys.openpgp.org/upload.
+
+**Important:** After uploading, the user must **verify their email** via the confirmation link that keys.openpgp.org sends. Without email verification, the key won't be discoverable by email address, and Scry won't be able to fetch it.
+
+### 4. Is the key registered on Signet?
+
+Check by visiting: `https://scry.thurin.id/#/eth/USER_ETH_ADDRESS`
+
+If the address shows no identity claims, the user needs to register on Signet.
+
+**Signet registration requires a browser with a wallet extension (MetaMask, etc.) and ETH for gas.** An AI agent cannot complete this step directly — guide the user through it.
+
+**Signet walkthrough (https://signet.thurin.id):**
+
+1. **Connect wallet** — Click the connect button. MetaMask, WalletConnect, and other providers are supported via RainbowKit.
+
+2. **Sign the PGP fingerprint with the wallet** — Run `gpg --fingerprint email@example.com` and paste the entire output into Signet. It will detect the 40-character fingerprint automatically. Then click "Sign with Wallet" — this signs the message `I control the GPG key with fingerprint: FINGERPRINT` with the ETH wallet.
+
+3. **Sign the ETH address with GnuPG** — Signet displays a command to run in the terminal:
+   ```bash
+   echo "I control the Ethereum address: 0xYOUR_ADDRESS" | gpg --clearsign --armor -u YOUR_FINGERPRINT
+   ```
+   The user runs this, then pastes the full output (including `-----BEGIN PGP SIGNED MESSAGE-----` header) back into Signet. Signet verifies the signature — it tries fetching the public key from keys.openpgp.org first, and falls back to a manual key paste if the keyserver lookup fails.
+
+4. **Publish to the registry** — Review the attestation JSON, then click "Publish to Registry." This sends a transaction to the PGPRegistry contract on Ethereum mainnet. The user must confirm in their wallet and pay gas.
+
+After publishing, the identity claim is live. The user can verify by looking up their address on Scry.
+
+**Note:** If the user already has an old registration and their key has changed, they can re-register on Signet. The new attestation will be added alongside existing ones.
+
+### 5. Ready for proofs
+
+Once all four prerequisites are met, proceed to the proof setup sections below.
+
+---
+
+## What are Thurin Proofs?
+
+Thurin Proofs are a decentralized identity verification system that links a user's PGP key to their online accounts. By adding cryptographic proofs to the PGP key and publishing verification tokens on supported platforms, the user creates a verifiable chain of identity that anyone can check using Scry.
+
+Proofs use a **bidirectional linking** model:
+
+1. **The PGP key points to the account** — A `proof@thurin.id` notation in the PGP key contains a URL to a proof on a platform (a GitHub gist, a DNS TXT record, a Farcaster cast).
+2. **The account points back to the key** — The proof contains the PGP fingerprint in `openpgp4fpr:FINGERPRINT` format.
+
+Anyone can independently verify both directions, confirming the same person controls both the PGP key and the account.
+
+```
+┌──────────────┐     proof@thurin.id notation      ┌──────────────────┐
+│              │ ──────────────────────────────────→│                  │
+│   PGP Key    │     (URL to proof post)            │  GitHub / DNS /  │
+│              │                                    │  Farcaster / ... │
+│              │←────────────────────────────────── │                  │
+└──────────────┘     openpgp4fpr:FINGERPRINT        └──────────────────┘
+```
+
+### Proof Content Format
+
+All proofs must contain the user's PGP fingerprint using the `openpgp4fpr:` token:
+
+```
+openpgp4fpr:FINGERPRINT
+```
+
+Where `FINGERPRINT` is the full 40-character hex PGP fingerprint (case-insensitive).
+
+The recommended format is:
+
+```
+thurin-id=openpgp4fpr:FINGERPRINT
+```
+
+The `thurin-id=` prefix is optional — Scry only checks for the presence of `openpgp4fpr:` followed by a matching fingerprint.
+
+---
+
+## Supported Providers
+
+| Provider   | Proof Method  | Notation Example                                        |
+|------------|---------------|---------------------------------------------------------|
+| GitHub     | Public gist   | `proof@thurin.id=https://gist.github.com/user/id`      |
+| DNS        | TXT record    | `proof@thurin.id=dns:example.com?type=TXT`              |
+| Farcaster  | Public cast   | `proof@thurin.id=https://farcaster.xyz/user/0xhash`     |
+
+---
+
+## GitHub Proof — Full Walkthrough
+
+### Step 1: Create a Public Gist
+
+Go to https://gist.github.com and create a **public** gist.
+
+- **Filename:** `thurin-proof.md` (or any name)
+- **Content:**
+
+```
+thurin-id=openpgp4fpr:YOUR_FINGERPRINT
+```
+
+The gist can contain additional text. Scry only looks for `openpgp4fpr:` followed by the fingerprint.
+
+### Step 2: Add the Notation to the PGP Key
+
+Copy the gist URL and add it as a notation:
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Then in the interactive GPG prompt:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter:
+
+```
+proof@thurin.id=https://gist.github.com/USERNAME/GIST_ID
+```
+
+Save and exit:
+
+```
+gpg> save
+```
+
+### Step 3: Upload the Updated Key
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+### What Scry Checks
+
+1. Extracts the gist ID from the notation URL
+2. Fetches the gist via the GitHub API (`api.github.com/gists/:id`)
+3. Searches all file contents for `openpgp4fpr:FINGERPRINT`
+4. Shows a green checkmark if the fingerprint matches
+
+### What It Looks Like in Scry
+
+```
+✓  GITHUB  username  [proof]
+```
+
+### Requirements
+
+- The gist must be **public**
+- The gist URL must match `https://gist.github.com/:username/:gist_id`
+- Do not delete the gist — Scry re-verifies on each lookup
+
+### Notes
+
+- GitHub API allows 60 requests/hour without authentication, which is fine for a lookup tool
+- Verification happens entirely client-side (GitHub API supports CORS)
+
+---
+
+## DNS Proof — Full Walkthrough
+
+### Step 1: Add a DNS TXT Record
+
+Add a TXT record to your domain (root or subdomain) with the value:
+
+```
+thurin-id=openpgp4fpr:YOUR_FINGERPRINT
+```
+
+This is typically done through your DNS provider's dashboard (Cloudflare, Namecheap, Route53, etc.).
+
+### Step 2: Add the Notation to the PGP Key
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Then in the interactive GPG prompt:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter:
+
+```
+proof@thurin.id=dns:example.com?type=TXT
+```
+
+Save and exit:
+
+```
+gpg> save
+```
+
+### Step 3: Upload the Updated Key
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+### What Scry Checks
+
+1. Extracts the domain from the DNS notation URI
+2. Queries TXT records via Cloudflare DNS-over-HTTPS
+3. Searches for a matching fingerprint in the TXT values
+4. Shows a green checkmark if the fingerprint matches
+
+### What It Looks Like in Scry
+
+```
+✓  DNS  example.com  [proof]
+```
+
+### Requirements
+
+- TXT records must be publicly resolvable
+- Notation URI must use the format `dns:DOMAIN?type=TXT`
+- TXT value must contain the full 40-character fingerprint
+
+### Notes
+
+- DNS propagation typically takes minutes to hours
+- Verification is client-side via Cloudflare DNS-over-HTTPS (supports CORS)
+- TXT records don't conflict with existing email or networking records
+
+---
+
+## Farcaster Proof — Full Walkthrough
+
+### Step 1: Publish a Proof Cast
+
+Post a public cast on Farcaster (via Warpcast or any client). The cast must contain the fingerprint.
+
+Recommended format (the Scry URL contains the fingerprint and doubles as a clickable link):
+
+```
+Verifying my identity with @thurinlabs
+
+https://scry.thurin.id/#/pgp/YOUR_FINGERPRINT
+```
+
+Or the explicit format:
+
+```
+thurin-id=openpgp4fpr:YOUR_FINGERPRINT
+```
+
+Scry only looks for `openpgp4fpr:` followed by the fingerprint anywhere in the cast text.
+
+### Step 2: Add the Notation to the PGP Key
+
+Copy the cast URL from Farcaster and add it as a notation:
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Then in the interactive GPG prompt:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter:
+
+```
+proof@thurin.id=https://farcaster.xyz/USERNAME/0xCASTHASH
+```
+
+Save and exit:
+
+```
+gpg> save
+```
+
+### Step 3: Upload the Updated Key
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+### What Scry Checks
+
+1. Extracts the cast hash from the Farcaster URL
+2. Fetches the cast via a Farcaster Hub REST API
+3. Searches the cast text for `openpgp4fpr:FINGERPRINT`
+4. Shows a green checkmark if the fingerprint matches
+
+### What It Looks Like in Scry
+
+```
+✓  FARCASTER  @username  [proof]
+```
+
+### Requirements
+
+- The cast must be public (not a direct cast or channel-restricted)
+- The cast URL must match `https://farcaster.xyz/:username/0x:hash`
+- Do not delete the cast — Scry re-verifies on each lookup
+
+### Notes
+
+- Proof casts are permanent on the Farcaster protocol — even if deleted from a client, they may persist on hubs
+- Verification is client-side via the Neynar Farcaster Hub API
+
+---
+
+## Managing Notations with GnuPG
+
+This section covers how to add, list, and remove `proof@thurin.id` notations from a PGP key using GnuPG.
+
+### Adding a Notation
+
+Open the key for editing:
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Select the user ID, then add the notation:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter the notation as `proof@thurin.id=VALUE`:
+
+```
+proof@thurin.id=dns:example.com?type=TXT
+```
+
+Save and exit:
+
+```
+gpg> save
+```
+
+Multiple `proof@thurin.id` notations can be added — one per proof. Repeat the `notation` command for each.
+
+### Listing Notations
+
+From inside `--edit-key`:
+
+```
+gpg> showpref
+```
+
+This shows all preferences including notations at the bottom.
+
+Or from the command line:
+
+```bash
+gpg --list-options show-notations --list-sigs YOUR_FINGERPRINT
+```
+
+### Removing a Notation
+
+Open the key for editing:
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Select the user ID, then remove a specific notation by prefixing it with `-`:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter the notation to remove with a minus sign:
+
+```
+-proof@thurin.id=dns:example.com?type=TXT
+```
+
+Save:
+
+```
+gpg> save
+```
+
+### Uploading to the Keyserver
+
+After any notation changes, upload the updated key to keys.openpgp.org:
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+Or export and upload manually:
+
+```bash
+gpg --export --armor YOUR_FINGERPRINT | curl -T - https://keys.openpgp.org
+```
+
+The web upload at https://keys.openpgp.org/upload also works.
+
+**Important:** Scry fetches keys from the keyserver. Updated notations won't appear in Scry until the key is uploaded.
+
+### Re-registering on Signet
+
+If on-chain key data is outdated, re-register on Signet (https://signet.thurin.id) so the on-chain key matches the keyserver version. Scry prefers the keyserver copy when available.
+
+---
+
+## Verification Flow (How Scry Works)
+
+When Scry looks up an identity:
+
+1. Fetches the PGP public key from keys.openpgp.org (by fingerprint from the on-chain attestation)
+2. Parses `proof@thurin.id` notations from the key
+3. For each notation, identifies the platform and fetches the proof content
+4. Checks that the proof contains `openpgp4fpr:FINGERPRINT` matching the key
+5. Displays a green checkmark for verified proofs, or an X with a reason for failures
+
+All verification happens client-side in the browser.
+
+---
+
+## Common Pitfalls
+
+- **GPG version too old:** Ed25519 keys require GnuPG 2.2+. If `gpg --full-generate-key` doesn't show an EdDSA option, upgrade GnuPG first.
+- **Key not uploaded:** After adding notations, the user MUST upload to keys.openpgp.org or Scry won't see the changes.
+- **Email not verified on keyserver:** After uploading to keys.openpgp.org, the user must click the verification link sent to their email. Without this, the key won't be discoverable.
+- **Gist not public:** Private gists can't be fetched by the GitHub API without auth — the gist must be public.
+- **DNS propagation:** TXT records can take minutes to hours to propagate; verification may not work immediately.
+- **Wrong fingerprint format:** Must be the full 40-character hex fingerprint, not a key ID or short fingerprint.
+- **Deleted proofs:** Scry re-verifies on each lookup; if the gist, TXT record, or cast is deleted, verification will fail.
+- **Interactive GPG prompts:** `gpg --edit-key` is interactive — it drops into a `gpg>` prompt. Commands like `uid 1`, `notation`, and `save` are entered one at a time at that prompt, not as CLI flags.
+- **Passphrase prompts:** GnuPG will prompt for the key passphrase during signing and editing. The AI agent cannot enter this — the user must type it themselves.
+
+---
+
+## AI Agent Notes
+
+If you are an AI agent helping a user set up Thurin identity claims and proofs:
+
+### What you can do directly
+
+- Check GPG version and install instructions
+- Run `gpg --list-keys`, `gpg --fingerprint` to check existing keys
+- Create GitHub gists (via `gh` CLI or GitHub API)
+- Set DNS TXT records (via provider CLIs/APIs if the user has them configured)
+- Upload keys to keyservers
+- Look up results on Scry to verify everything worked
+
+### What requires user interaction (guide them step by step)
+
+- **GPG passphrase entry:** GnuPG prompts for the passphrase in a pinentry dialog. You cannot type this for the user.
+- **GPG `--edit-key` flow:** This is interactive. Walk the user through each `gpg>` prompt one at a time. Do not try to script the full session as a single command.
+- **Key creation:** The `--quick-gen-key` one-liner works, but the user still needs to enter a passphrase.
+- **Signet registration:** Requires a browser with a wallet extension (MetaMask, etc.). Walk the user through each of the four steps. You cannot sign transactions or interact with the wallet.
+- **Farcaster casts:** Requires an authenticated Farcaster client (Warpcast, etc.). Tell the user what to post.
+
+### Recommended flow
+
+1. Check GPG version → install/upgrade if needed
+2. Check for existing keys → create one if needed (recommend Ed25519)
+3. Check keyserver → upload and verify email if needed
+4. Check Scry for existing registration → guide through Signet if needed
+5. Set up proofs one at a time — create the proof content first, then add the notation, then upload the key
+6. Verify on Scry after each proof: `https://scry.thurin.id/#/pgp/FINGERPRINT`
+
+### Order matters
+
+The proof content (gist, TXT record, cast) should be created BEFORE adding the notation to the PGP key, so that when Scry checks, the proof already exists.
+
+---
+
+## Links
+
+- Scry: https://scry.thurin.id
+- Signet: https://signet.thurin.id
+- Website: https://thurin.id
+- Documentation: https://docs.thurin.id
+- GitHub: https://github.com/thurin-labs
+- Keyserver: https://keys.openpgp.org

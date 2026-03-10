@@ -12,6 +12,11 @@ Thurin is a privacy-preserving identity verification protocol. Users verify thei
 - [Managing Notations](/scry/gnupg) — Add, list, and remove proof notations from your PGP key
 - Providers: [DNS](/scry/dns) · [Farcaster](/scry/farcaster) · [GitHub](/scry/github)
 
+#### AI Agents
+
+A consolidated reference for AI assistants helping users set up Thurin Proofs is available at [llms.txt](https://docs.thurin.id/llms.txt).
+
+
 ## SDK
 
 Integrate Thurin verification into your dApp with a single line of code.
