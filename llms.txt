@@ -8,11 +8,12 @@
 
 ## What is Thurin?
 
-Thurin is a privacy-preserving identity verification protocol. Users verify their identity once using a mobile driver's license (mDL), then receive a soulbound token (SBT) that proves they're a unique human — without revealing personal information.
+Thurin is a decentralized identity stack for Ethereum. On-chain identity claims, public-key cryptography, and social proofs — no backends, no intermediaries, no data collection.
 
 Key tools:
-- **Scry** (https://scry.thurin.id) — Identity lookup. Look up any Ethereum address, ENS name, or PGP fingerprint to view on-chain identity claims and verified proofs.
+- **Scry** (https://scry.thurin.id) — Identity explorer. Look up any Ethereum address, ENS name, or PGP fingerprint to view on-chain identity claims and verified proofs.
 - **Signet** (https://signet.thurin.id) — Create on-chain identity claims by registering your PGP key.
+- **Identity Kit** (https://www.npmjs.com/package/@thurinlabs/identity-kit) — React SDK for embedding Thurin identity data.
 
 ---
 
@@ -153,18 +154,18 @@ Thurin Proofs are a decentralized identity verification system that links a user
 
 Proofs use a **bidirectional linking** model:
 
-1. **The PGP key points to the account** — A `proof@thurin.id` notation in the PGP key contains a URL to a proof on a platform (a GitHub gist, a DNS TXT record, a Farcaster cast).
+1. **The PGP key points to the account** — A `proof@thurin.id` notation in the PGP key contains a URL to a proof on a platform (a GitHub gist, a DNS TXT record, a Farcaster cast, a Codeberg repo, a Mastodon profile).
 2. **The account points back to the key** — The proof contains the PGP fingerprint in `openpgp4fpr:FINGERPRINT` format.
 
 Anyone can independently verify both directions, confirming the same person controls both the PGP key and the account.
 
 ```
-┌──────────────┐     proof@thurin.id notation      ┌──────────────────┐
-│              │ ──────────────────────────────────→│                  │
-│   PGP Key    │     (URL to proof post)            │  GitHub / DNS /  │
-│              │                                    │  Farcaster / ... │
-│              │←────────────────────────────────── │                  │
-└──────────────┘     openpgp4fpr:FINGERPRINT        └──────────────────┘
+┌──────────────┐    proof@thurin.id notation    ┌────────────────────┐
+│              │ ─────────────────────────────→ │    Platform        │
+│   PGP Key    │    (URL to proof post)         │  (GitHub, DNS,     │
+│              │                                │  Farcaster,        │
+│              │ ←───────────────────────────── │  Codeberg, etc.)   │
+└──────────────┘    openpgp4fpr:FINGERPRINT     └────────────────────┘
 ```
 
 ### Proof Content Format
@@ -189,32 +190,32 @@ The `thurin-id=` prefix is optional — Scry only checks for the presence of `op
 
 ## Supported Providers
 
-| Provider   | Proof Method  | Notation Example                                        |
-|------------|---------------|---------------------------------------------------------|
-| GitHub     | Public gist   | `proof@thurin.id=https://gist.github.com/user/id`      |
-| DNS        | TXT record    | `proof@thurin.id=dns:example.com?type=TXT`              |
-| Farcaster  | Public cast   | `proof@thurin.id=https://farcaster.xyz/user/0xhash`     |
+| Provider   | Proof Method       | Notation Example                                        |
+|------------|--------------------|---------------------------------------------------------|
+| Codeberg   | Repo description   | `proof@thurin.id=https://codeberg.org/user/repo`        |
+| DNS        | TXT record         | `proof@thurin.id=dns:example.com?type=TXT`              |
+| Farcaster  | Public cast        | `proof@thurin.id=https://farcaster.xyz/user/0xhash`     |
+| GitHub     | Public gist        | `proof@thurin.id=https://gist.github.com/user/id`       |
+| Mastodon   | Profile metadata   | `proof@thurin.id=https://mastodon.social/@user`          |
 
 ---
 
-## GitHub Proof — Full Walkthrough
+## Codeberg Proof — Full Walkthrough
 
-### Step 1: Create a Public Gist
+### Step 1: Create a Proof Repository
 
-Go to https://gist.github.com and create a **public** gist.
+Go to https://codeberg.org and create a new repository.
 
-- **Filename:** `thurin-proof.md` (or any name)
-- **Content:**
+- **Name:** `thurin-proof` (or anything)
+- **Description:**
 
 ```
 thurin-id=openpgp4fpr:YOUR_FINGERPRINT
 ```
 
-The gist can contain additional text. Scry only looks for `openpgp4fpr:` followed by the fingerprint.
+The repo can be empty — only the description matters. Make sure your account visibility is set to **Public**.
 
 ### Step 2: Add the Notation to the PGP Key
-
-Copy the gist URL and add it as a notation:
 
 ```bash
 gpg --edit-key YOUR_FINGERPRINT
@@ -230,7 +231,7 @@ gpg> notation
 Enter:
 
 ```
-proof@thurin.id=https://gist.github.com/USERNAME/GIST_ID
+proof@thurin.id=https://codeberg.org/USERNAME/thurin-proof
 ```
 
 Save and exit:
@@ -247,27 +248,23 @@ gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
 
 ### What Scry Checks
 
-1. Extracts the gist ID from the notation URL
-2. Fetches the gist via the GitHub API (`api.github.com/gists/:id`)
-3. Searches all file contents for `openpgp4fpr:FINGERPRINT`
+1. Extracts the username and repo name from the Codeberg URL
+2. Fetches the repository via the Codeberg API (`/api/v1/repos/:user/:repo`)
+3. Searches the repository description for `openpgp4fpr:FINGERPRINT`
 4. Shows a green checkmark if the fingerprint matches
 
 ### What It Looks Like in Scry
 
 ```
-✓  GITHUB  username  [proof]
+✓  CODEBERG  username  [proof]
 ```
 
 ### Requirements
 
-- The gist must be **public**
-- The gist URL must match `https://gist.github.com/:username/:gist_id`
-- Do not delete the gist — Scry re-verifies on each lookup
-
-### Notes
-
-- GitHub API allows 60 requests/hour without authentication, which is fine for a lookup tool
-- Verification happens entirely client-side (GitHub API supports CORS)
+- The repository must be **public**
+- Your account visibility must be set to **Public**
+- The repo URL must match `https://codeberg.org/:username/:repo`
+- Do not delete the repository — Scry re-verifies on each lookup
 
 ---
 
@@ -422,6 +419,157 @@ gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
 
 ---
 
+## GitHub Proof — Full Walkthrough
+
+### Step 1: Create a Public Gist
+
+Go to https://gist.github.com and create a **public** gist.
+
+- **Filename:** `thurin-proof.md` (or any name)
+- **Content:**
+
+```
+thurin-id=openpgp4fpr:YOUR_FINGERPRINT
+```
+
+The gist can contain additional text. Scry only looks for `openpgp4fpr:` followed by the fingerprint.
+
+### Step 2: Add the Notation to the PGP Key
+
+Copy the gist URL and add it as a notation:
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Then in the interactive GPG prompt:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter:
+
+```
+proof@thurin.id=https://gist.github.com/USERNAME/GIST_ID
+```
+
+Save and exit:
+
+```
+gpg> save
+```
+
+### Step 3: Upload the Updated Key
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+### What Scry Checks
+
+1. Extracts the gist ID from the notation URL
+2. Fetches the gist via the GitHub API (`api.github.com/gists/:id`)
+3. Searches all file contents for `openpgp4fpr:FINGERPRINT`
+4. Shows a green checkmark if the fingerprint matches
+
+### What It Looks Like in Scry
+
+```
+✓  GITHUB  username  [proof]
+```
+
+### Requirements
+
+- The gist must be **public**
+- The gist URL must match `https://gist.github.com/:username/:gist_id`
+- Do not delete the gist — Scry re-verifies on each lookup
+
+### Notes
+
+- GitHub API allows 60 requests/hour without authentication, which is fine for a lookup tool
+- Verification happens entirely client-side (GitHub API supports CORS)
+
+---
+
+## Mastodon Proof — Full Walkthrough
+
+### Step 1: Add Your Fingerprint to Your Mastodon Profile
+
+Go to your Mastodon instance's profile settings and add a metadata field linking to your Scry profile:
+
+- **Label:** `PGP` (or anything you like)
+- **Value:** `https://scry.thurin.id/#/pgp/YOUR_FINGERPRINT`
+
+You can use either your full 40-character fingerprint or your 16-character key ID in the URL. Both work.
+
+Alternatively, you can add the Scry link to your bio.
+
+### Step 2: Add the Notation to the PGP Key
+
+```bash
+gpg --edit-key YOUR_FINGERPRINT
+```
+
+Then in the interactive GPG prompt:
+
+```
+gpg> uid 1
+gpg> notation
+```
+
+Enter:
+
+```
+proof@thurin.id=https://INSTANCE/@USERNAME
+```
+
+For example:
+
+```
+proof@thurin.id=https://mastodon.social/@alice
+```
+
+Save and exit:
+
+```
+gpg> save
+```
+
+### Step 3: Upload the Updated Key
+
+```bash
+gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
+```
+
+### What Scry Checks
+
+1. Extracts the instance and username from the Mastodon profile URL
+2. Fetches the account via the Mastodon API (`/api/v1/accounts/lookup?acct=USERNAME`)
+3. Searches profile metadata fields and bio for the fingerprint (full 40-char or last-16 key ID)
+4. Shows a green checkmark if the fingerprint matches
+
+### What It Looks Like in Scry
+
+```
+✓  MASTODON  @username@instance  [proof]
+```
+
+### Requirements
+
+- Your profile metadata or bio must contain your fingerprint (typically via a Scry URL)
+- The notation URL must match `https://INSTANCE/@USERNAME`
+- Do not remove the fingerprint from your profile — Scry re-verifies on each lookup
+
+### Notes
+
+- Unlike other providers, Mastodon proofs check your **profile**, not a specific post — so there's nothing to accidentally delete
+- Verification uses the public Mastodon API (no authentication required)
+- Works with any Mastodon-compatible instance (Mastodon, Hometown, etc.)
+
+---
+
 ## Managing Notations with GnuPG
 
 This section covers how to add, list, and remove `proof@thurin.id` notations from a PGP key using GnuPG.
@@ -522,6 +670,47 @@ If on-chain key data is outdated, re-register on Signet (https://signet.thurin.i
 
 ---
 
+## Widget / SDK
+
+`@thurinlabs/identity-kit` is an open source React SDK for embedding Thurin identity data.
+
+- **npm:** https://www.npmjs.com/package/@thurinlabs/identity-kit
+- **Source:** https://codeberg.org/thurinlabs/identity-kit
+
+### ScryCard component
+
+A drop-in identity card showing ENS avatar, name, address, Signet seal count, verified proof count, EFP follower count, and proof provider badges.
+
+```tsx
+import { IdentityKitProvider, ScryCard } from '@thurinlabs/identity-kit'
+import '@thurinlabs/identity-kit/styles'
+
+<IdentityKitProvider>
+  <ScryCard ens="vitalik.eth" theme="thurin" />
+</IdentityKitProvider>
+```
+
+Props: `ens` (string), `address` (string), `theme` ('thurin' | 'dark' | 'light').
+
+### Hooks
+
+For custom UI, import hooks directly:
+
+- `useScryIdentity(ensOrAddress)` — combined identity data (ENS, claims, proofs, EFP)
+- `useSignetClaims(address)` — on-chain attestation count and details
+- `useEFPGraph(address)` — EFP follower/following counts and top 8
+- `usePGPProofs(fingerprint)` — PGP key info and verified social proofs
+
+### Provider
+
+`IdentityKitProvider` accepts optional `rpcUrl`, `neynarApiKey`, and `scryBaseUrl`. Auto-detects existing `WagmiProvider`. Zero config works out of the box with public RPC.
+
+### Theming
+
+Three built-in themes: `thurin`, `dark`, `light`. Styles scoped under `[data-scry-theme]` with `scry-` prefixed classes. Import `@thurinlabs/identity-kit/styles` when using ScryCard.
+
+---
+
 ## Verification Flow (How Scry Works)
 
 When Scry looks up an identity:
@@ -570,6 +759,8 @@ If you are an AI agent helping a user set up Thurin identity claims and proofs:
 - **Key creation:** The `--quick-gen-key` one-liner works, but the user still needs to enter a passphrase.
 - **Signet registration:** Requires a browser with a wallet extension (MetaMask, etc.). Walk the user through each of the four steps. You cannot sign transactions or interact with the wallet.
 - **Farcaster casts:** Requires an authenticated Farcaster client (Warpcast, etc.). Tell the user what to post.
+- **Mastodon profile:** Requires logging into the Mastodon instance. Tell the user what to add to their profile metadata fields.
+- **Codeberg repo:** Requires a Codeberg account. Tell the user what to put in the repo description.
 
 ### Recommended flow
 
@@ -582,7 +773,7 @@ If you are an AI agent helping a user set up Thurin identity claims and proofs:
 
 ### Order matters
 
-The proof content (gist, TXT record, cast) should be created BEFORE adding the notation to the PGP key, so that when Scry checks, the proof already exists.
+The proof content (gist, TXT record, cast, repo, profile field) should be created BEFORE adding the notation to the PGP key, so that when Scry checks, the proof already exists.
 
 ---
 
@@ -592,5 +783,6 @@ The proof content (gist, TXT record, cast) should be created BEFORE adding the n
 - Signet: https://signet.thurin.id
 - Website: https://thurin.id
 - Documentation: https://docs.thurin.id
-- GitHub: https://github.com/thurin-labs
+- Codeberg: https://codeberg.org/thurinlabs
+- Identity Kit: https://www.npmjs.com/package/@thurinlabs/identity-kit
 - Keyserver: https://keys.openpgp.org

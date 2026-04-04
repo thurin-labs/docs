@@ -6,19 +6,19 @@ Thurin Proofs are a decentralized identity verification system that links your P
 
 Thurin Proofs use a **bidirectional linking** model:
 
-1. **Your PGP key points to your account** — A `proof@thurin.id` notation in your PGP key contains a URL to a proof on a platform (a GitHub gist, a DNS TXT record, a Farcaster cast).
+1. **Your PGP key points to your account** — A `proof@thurin.id` notation in your PGP key contains a URL to a proof on a platform (a GitHub gist, a DNS TXT record, a Farcaster cast, a Codeberg repo, a Mastodon profile).
 
 2. **Your account points back to your key** — The proof contains your PGP fingerprint in `openpgp4fpr:FINGERPRINT` format.
 
 Anyone can independently verify both directions, confirming that the same person controls both the PGP key and the account.
 
 ```
-┌──────────────┐     proof@thurin.id notation      ┌──────────────────┐
-│              │ ──────────────────────────────────→│                  │
-│   PGP Key    │     (URL to proof post)            │  GitHub / DNS /  │
-│              │                                    │  Farcaster / ... │
-│              │←────────────────────────────────── │                  │
-└──────────────┘     openpgp4fpr:FINGERPRINT        └──────────────────┘
+┌──────────────┐    proof@thurin.id notation    ┌────────────────────┐
+│              │ ─────────────────────────────→ │    Platform        │
+│   PGP Key    │    (URL to proof post)         │  (GitHub, DNS,     │
+│              │                                │  Farcaster,        │
+│              │ ←───────────────────────────── │  Codeberg, etc.)   │
+└──────────────┘    openpgp4fpr:FINGERPRINT     └────────────────────┘
 ```
 
 ## Prerequisites
@@ -31,9 +31,11 @@ Anyone can independently verify both directions, confirming that the same person
 
 | Provider | Proof Method | Notation Example |
 |---|---|---|
-| [GitHub](/scry/github) | Public gist | `proof@thurin.id=https://gist.github.com/user/id` |
+| [Codeberg](/scry/codeberg) | Repo description | `proof@thurin.id=https://codeberg.org/user/repo` |
 | [DNS](/scry/dns) | TXT record | `proof@thurin.id=dns:example.com?type=TXT` |
 | [Farcaster](/scry/farcaster) | Public cast | `proof@thurin.id=https://farcaster.xyz/user/0xhash` |
+| [GitHub](/scry/github) | Public gist | `proof@thurin.id=https://gist.github.com/user/id` |
+| [Mastodon](/scry/mastodon) | Profile metadata | `proof@thurin.id=https://mastodon.social/@user` |
 
 ## Proof Content Format
 

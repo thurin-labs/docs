@@ -1,208 +1,127 @@
-# JavaScript SDK
+# Identity Kit
 
-Minimal SDK for checking Thurin SBT status from JavaScript/TypeScript.
+React SDK for embedding Thurin identity data. Drop-in components and hooks for displaying on-chain identity claims, PGP verification, social proofs, and EFP social graph data.
 
-## Installation
+**npm:** [`@thurinlabs/identity-kit`](https://www.npmjs.com/package/@thurinlabs/identity-kit)
+**Source:** [Codeberg](https://codeberg.org/thurinlabs/identity-kit)
+
+## Install
 
 ```bash
-npm install @thurinlabs/sdk viem
+npm install @thurinlabs/identity-kit
 ```
+
+Peer dependencies: `react`, `react-dom`, `wagmi`, `viem`, `@tanstack/react-query`
 
 ## Quick Start
 
-```typescript
-import { ThurinSBT } from '@thurinlabs/sdk';
-import { createPublicClient, http } from 'viem';
-import { mainnet } from 'viem/chains';
+```tsx
+import { IdentityKitProvider, ScryCard } from '@thurinlabs/identity-kit'
+import '@thurinlabs/identity-kit/styles'
 
-// Always query mainnet (even if your dApp is on an L2)
-const client = createPublicClient({
-  chain: mainnet,
-  transport: http()
-});
-
-// Create Thurin instance
-const thurin = new ThurinSBT(client);
-
-// Check if user is verified
-const isVerified = await thurin.isValid(userAddress);
-if (isVerified) {
-  console.log('User has valid Thurin SBT');
+function App() {
+  return (
+    <IdentityKitProvider>
+      <ScryCard ens="vitalik.eth" theme="thurin" />
+    </IdentityKitProvider>
+  )
 }
 ```
 
-## API Reference
+## ScryCard
 
-### `ThurinSBT`
+A self-contained identity card that fetches and displays all available identity data.
 
-The main class for interacting with the Thurin SBT contract.
-
-```typescript
-const thurin = new ThurinSBT(client, address?)
+```tsx
+<ScryCard ens="vitalik.eth" theme="thurin" />
+<ScryCard address="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" theme="dark" />
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `client` | `PublicClient` | A viem PublicClient |
-| `address` | `Address` | Optional. Contract address (defaults to canonical address) |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `ens` | `string` | — | ENS name to look up |
+| `address` | `string` | — | ETH address to look up |
+| `theme` | `'thurin' \| 'dark' \| 'light'` | `'thurin'` | Visual theme |
 
----
+Displays: ENS avatar, name, address, Signet seal count, verified proof count, EFP follower count, proof provider badges, and a link to the full Scry profile.
 
-### `isValid(user)`
+## Provider
 
-Check if a user has a valid (non-expired) SBT.
+Wrap your app (or just the part using identity-kit) in `IdentityKitProvider`. If you already have a `WagmiProvider`, the SDK detects it and uses your existing config.
 
-```typescript
-const isValid = await thurin.isValid('0x...');
-// true or false
+```tsx
+// Zero config — uses public RPC, no Farcaster verification
+<IdentityKitProvider>
+  <ScryCard ens="vitalik.eth" />
+</IdentityKitProvider>
+
+// With options
+<IdentityKitProvider
+  rpcUrl="https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
+  neynarApiKey="YOUR_NEYNAR_KEY"
+  scryBaseUrl="https://scry.thurin.id"
+>
+  <ScryCard ens="vitalik.eth" />
+</IdentityKitProvider>
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `Address` | User's wallet address |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `rpcUrl` | `string` | publicnode | Ethereum RPC endpoint |
+| `neynarApiKey` | `string` | — | Neynar API key for Farcaster proof verification |
+| `scryBaseUrl` | `string` | `https://scry.thurin.id` | Base URL for "View on Scry" links |
 
-**Returns:** `Promise<boolean>`
+## Hooks
 
----
+For custom UI, use the hooks directly instead of `ScryCard`.
 
-### `getExpiry(user)`
+### useScryIdentity
 
-Get the expiry timestamp for a user's SBT.
+Combined identity data — ENS, Signet claims, PGP proofs, and EFP social graph.
 
-```typescript
-const expiry = await thurin.getExpiry('0x...');
-// 1735689600n (Unix timestamp as bigint)
+```tsx
+const identity = useScryIdentity('vitalik.eth')
+// or
+const identity = useScryIdentity('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `Address` | User's wallet address |
+Returns `ScryIdentity` with `address`, `ensName`, `ensAvatar`, `claims`, `totalClaims`, `activeClaims`, `currentFingerprint`, `pgpKeyInfo`, `proofs`, `efp`, `isLoading`, `error`.
 
-**Returns:** `Promise<bigint>` - Expiry timestamp (0 if no SBT)
+### useSignetClaims
 
----
+On-chain attestation data from the PGPRegistry contract.
 
-### `getMintPrice()`
-
-Get the current mint price in wei.
-
-```typescript
-const price = await thurin.getMintPrice();
-// 1000000000000000n (0.001 ETH)
+```tsx
+const { claims, totalClaims, activeClaims, currentFingerprint, isLoading } =
+  useSignetClaims('0xd8dA...')
 ```
 
-**Returns:** `Promise<bigint>` - Price in wei
+### useEFPGraph
 
----
+EFP (Ethereum Follow Protocol) social graph data.
 
-### `getPoints(user)`
-
-Get a user's points balance.
-
-```typescript
-const points = await thurin.getPoints('0x...');
-// 500n
+```tsx
+const { efp, isLoading } = useEFPGraph('0xd8dA...')
+// efp.followers, efp.following, efp.top8, efp.hasEfp
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `Address` | User's wallet address |
+### usePGPProofs
 
-**Returns:** `Promise<bigint>` - Points balance
+PGP key info and verified social proofs from keyserver.
 
----
-
-### `totalSupply()`
-
-Get total number of minted SBTs.
-
-```typescript
-const supply = await thurin.totalSupply();
-// 1234n
+```tsx
+const { keyInfo, proofs, isLoading } = usePGPProofs('03E53D807CE38C...')
+// proofs[].provider, proofs[].status, proofs[].displayUrl
 ```
 
-**Returns:** `Promise<bigint>` - Total supply
+## Themes
 
----
+Three built-in themes: `thurin`, `dark`, `light`. All styles are scoped under `[data-scry-theme]` with `scry-` prefixed class names to avoid conflicts with your app's styles.
 
-### `getStatus(user)`
+Import styles when using `ScryCard`:
 
-Get full SBT status for a user in one call.
-
-```typescript
-const status = await thurin.getStatus('0x...');
-// { isValid: true, expiry: 1735689600n, points: 500n }
+```tsx
+import '@thurinlabs/identity-kit/styles'
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `Address` | User's wallet address |
-
-**Returns:** `Promise<SBTStatus>`
-
-```typescript
-interface SBTStatus {
-  isValid: boolean;
-  expiry: bigint;
-  points: bigint;
-}
-```
-
-## Examples
-
-### React Hook
-
-```typescript
-import { useEffect, useState } from 'react';
-import { ThurinSBT } from '@thurinlabs/sdk';
-import { usePublicClient } from 'wagmi';
-
-function useThurinStatus(address?: string) {
-  const client = usePublicClient();
-  const [isVerified, setIsVerified] = useState(false);
-
-  useEffect(() => {
-    if (!client || !address) return;
-
-    const thurin = new ThurinSBT(client);
-    thurin.isValid(address).then(setIsVerified);
-  }, [client, address]);
-
-  return isVerified;
-}
-```
-
-### Gate Content
-
-```typescript
-const thurin = new ThurinSBT(client);
-
-async function handleAction(userAddress: string) {
-  const isVerified = await thurin.isValid(userAddress);
-
-  if (!isVerified) {
-    throw new Error('Please verify at app.thurin.id first');
-  }
-
-  // Proceed with action...
-}
-```
-
-## Testing (Sepolia)
-
-For development, use the Sepolia testnet deployment:
-
-```typescript
-import { ThurinSBT } from '@thurinlabs/sdk';
-import { createPublicClient, http } from 'viem';
-import { sepolia } from 'viem/chains';
-
-const SEPOLIA_SBT = '0x03812ef2AEF6666c14ce23EfDbF55bd4662BFbDf';
-
-const client = createPublicClient({
-  chain: sepolia,
-  transport: http()
-});
-
-const thurin = new ThurinSBT(client, SEPOLIA_SBT);
-```
+Hooks-only consumers don't need to import styles.

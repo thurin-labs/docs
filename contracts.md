@@ -1,196 +1,67 @@
-# Solidity Integration
+# PGPRegistry Contract
 
-Solidity library and interface for on-chain Thurin verification.
+The `PGPRegistry` contract stores on-chain PGP-to-Ethereum identity claims created via [Signet](https://signet.thurin.id).
 
-## Installation
+## Contract Details
 
-### Foundry
+| Item | Value |
+|------|-------|
+| Network | Ethereum Mainnet |
+| Address | `0xf7a45BC662A78a6fb417ED5f52b3766cbf13EbBb` |
+| Deploy Block | 24515891 |
 
-```bash
-forge install thurinlabs/contracts
-```
+## Functions
 
-### npm
+### `attestationCount(address)`
 
-```bash
-npm install @thurinlabs/contracts
-```
-
-## Quick Start
+Returns the number of attestations for an address.
 
 ```solidity
-import { ThurinSBT } from "@thurinlabs/contracts/interfaces/ThurinSBT.sol";
-
-contract MyDapp {
-    function doThing() external {
-        require(ThurinSBT.isValid(msg.sender), "Not verified");
-        // User is a verified unique human
-    }
-}
+function attestationCount(address addr) external view returns (uint256)
 ```
 
-That's it. One import, one line.
+### `getAttestation(address, uint256)`
 
-## API Reference
-
-### `ThurinSBT` Library
-
-The library wraps the canonical Thurin SBT contract address, so you don't need to manage addresses.
-
----
-
-### `isValid(user)`
-
-Check if a user has a valid (non-expired) SBT.
+Returns attestation details by index.
 
 ```solidity
-function isValid(address user) internal view returns (bool)
+function getAttestation(address addr, uint256 index)
+  external view returns (string fingerprint, uint256 createdAt, bool revoked)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `address` | User's wallet address |
+### `Attested` Event
 
-**Returns:** `true` if user has valid SBT
-
----
-
-### `getExpiry(user)`
-
-Get the expiry timestamp for a user's SBT.
+Emitted when a new attestation is created.
 
 ```solidity
-function getExpiry(address user) internal view returns (uint256)
+event Attested(
+  address indexed ethAddress,
+  string indexed fingerprintHash,
+  string fingerprint,
+  string pgpSignature,
+  string pgpPublicKey,
+  uint256 index,
+  uint256 timestamp
+)
 ```
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `address` | User's wallet address |
+## Reading from JavaScript
 
-**Returns:** Expiry timestamp (0 if no SBT)
+Use the [`@thurinlabs/identity-kit`](/sdk) SDK for the easiest integration, or read directly with viem:
 
----
+```typescript
+import { createPublicClient, http } from 'viem'
+import { mainnet } from 'viem/chains'
 
-### `getMintPrice()`
+const client = createPublicClient({
+  chain: mainnet,
+  transport: http(),
+})
 
-Get the current mint price.
-
-```solidity
-function getMintPrice() internal view returns (uint256)
+const count = await client.readContract({
+  address: '0xf7a45BC662A78a6fb417ED5f52b3766cbf13EbBb',
+  abi: [/* see identity-kit source for full ABI */],
+  functionName: 'attestationCount',
+  args: ['0xYourAddress'],
+})
 ```
-
-**Returns:** Price in wei
-
----
-
-### `points(user)`
-
-Get a user's points balance.
-
-```solidity
-function points(address user) internal view returns (uint256)
-```
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `user` | `address` | User's wallet address |
-
-**Returns:** Points balance
-
-## Interface
-
-If you prefer to use the interface directly with a custom address:
-
-```solidity
-import { IThurinSBT, THURIN_SBT } from "@thurinlabs/contracts/interfaces/IThurinSBT.sol";
-
-contract MyDapp {
-    function doThing() external {
-        require(IThurinSBT(THURIN_SBT).isValid(msg.sender), "Not verified");
-    }
-}
-```
-
-### `IThurinSBT`
-
-```solidity
-interface IThurinSBT {
-    function isValid(address user) external view returns (bool);
-    function getExpiry(address user) external view returns (uint256);
-    function getMintPrice() external view returns (uint256);
-    function points(address user) external view returns (uint256);
-}
-```
-
-## Examples
-
-### Access Control
-
-```solidity
-import { ThurinSBT } from "@thurinlabs/contracts/interfaces/ThurinSBT.sol";
-
-contract GatedContent {
-    mapping(address => bool) public hasAccess;
-
-    function unlockContent() external {
-        require(ThurinSBT.isValid(msg.sender), "Verify at app.thurin.id");
-        hasAccess[msg.sender] = true;
-    }
-
-    function viewContent() external view returns (string memory) {
-        require(hasAccess[msg.sender], "Unlock first");
-        return "Secret content";
-    }
-}
-```
-
-### Modifier Pattern
-
-```solidity
-import { ThurinSBT } from "@thurinlabs/contracts/interfaces/ThurinSBT.sol";
-
-contract MyDapp {
-    modifier onlyVerified() {
-        require(ThurinSBT.isValid(msg.sender), "Not verified");
-        _;
-    }
-
-    function protectedAction() external onlyVerified {
-        // Only verified humans can call this
-    }
-}
-```
-
-### Check Expiry
-
-```solidity
-import { ThurinSBT } from "@thurinlabs/contracts/interfaces/ThurinSBT.sol";
-
-contract MyDapp {
-    function timeUntilExpiry(address user) external view returns (uint256) {
-        uint256 expiry = ThurinSBT.getExpiry(user);
-        if (expiry == 0 || expiry < block.timestamp) {
-            return 0;
-        }
-        return expiry - block.timestamp;
-    }
-}
-```
-
-## Contract Addresses
-
-Thurin SBTs live on Ethereum mainnet. Query mainnet from any chain.
-
-| Chain | ThurinSBT Address |
-|-------|-------------------|
-| Ethereum Mainnet | TBD |
-| Sepolia (testnet) | `0x03812ef2AEF6666c14ce23EfDbF55bd4662BFbDf` |
-
-## Gas Estimates
-
-| Operation | Gas |
-|-----------|-----|
-| `isValid()` | ~3,000 |
-| `getExpiry()` | ~3,000 |
-| `getMintPrice()` | ~3,000 |
-| `points()` | ~3,000 |
