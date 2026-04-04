@@ -709,6 +709,17 @@ For custom UI, import hooks directly:
 
 Three built-in themes: `thurin`, `dark`, `light`. Styles scoped under `[data-scry-theme]` with `scry-` prefixed classes. Import `@thurinlabs/identity-kit/styles` when using ScryCard.
 
+### Embed (No React Required)
+
+For static sites (Jekyll, WordPress, plain HTML), use the standalone embed script:
+
+```html
+<div data-scry-card="bendoubleu.eth" data-theme="thurin"></div>
+<script src="https://cdn.jsdelivr.net/npm/@thurinlabs/identity-kit/dist/embed.global.js"></script>
+```
+
+Data attributes: `data-scry-card` (ENS or address, required), `data-theme` (thurin/dark/light, default: thurin). The script bundles everything internally — no React or build tools needed.
+
 ---
 
 ## Verification Flow (How Scry Works)

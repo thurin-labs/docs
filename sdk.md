@@ -125,3 +125,20 @@ import '@thurinlabs/identity-kit/styles'
 ```
 
 Hooks-only consumers don't need to import styles.
+
+## Embed (No React Required)
+
+For static sites, Jekyll blogs, WordPress, or any HTML page — use the standalone embed script. No React, no bundler, no config.
+
+```html
+<div data-scry-card="bendoubleu.eth" data-theme="thurin"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@thurinlabs/identity-kit/dist/embed.global.js"></script>
+```
+
+| Attribute | Description |
+|-----------|-------------|
+| `data-scry-card` | ENS name or ETH address to look up (required) |
+| `data-theme` | `thurin`, `dark`, or `light` (default: `thurin`) |
+
+The script bundles everything internally. Cards render automatically on page load and for dynamically added elements.
