@@ -1,5 +1,6 @@
 - [Home](/)
 - **Scry**
+- [Getting Started](/scry/getting-started)
 - [Thurin Proofs](/scry/proofs)
 - [Managing Notations](/scry/gnupg)
 - Providers
