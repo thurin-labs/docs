@@ -118,7 +118,7 @@ Or upload via the web interface at https://keys.openpgp.org/upload.
 
 ### 4. Is the key registered on Signet?
 
-Check by visiting: `https://scry.thurin.id/#/eth/USER_ETH_ADDRESS`
+Check by visiting: `https://scry.thurin.id/eth/USER_ETH_ADDRESS`
 
 If the address shows no identity claims, the user needs to register on Signet.
 
@@ -349,7 +349,7 @@ Recommended format (the Scry URL contains the fingerprint and doubles as a click
 ```
 Verifying my identity with @thurinlabs
 
-https://scry.thurin.id/#/pgp/YOUR_FINGERPRINT
+https://scry.thurin.id/pgp/YOUR_FINGERPRINT
 ```
 
 Or the explicit format:
@@ -500,7 +500,7 @@ gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
 Go to your Mastodon instance's profile settings and add a metadata field linking to your Scry profile:
 
 - **Label:** `PGP` (or anything you like)
-- **Value:** `https://scry.thurin.id/#/pgp/YOUR_FINGERPRINT`
+- **Value:** `https://scry.thurin.id/pgp/YOUR_FINGERPRINT`
 
 You can use either your full 40-character fingerprint or your 16-character key ID in the URL. Both work.
 
@@ -780,7 +780,7 @@ If you are an AI agent helping a user set up Thurin identity claims and proofs:
 3. Check keyserver → upload and verify email if needed
 4. Check Scry for existing registration → guide through Signet if needed
 5. Set up proofs one at a time — create the proof content first, then add the notation, then upload the key
-6. Verify on Scry after each proof: `https://scry.thurin.id/#/pgp/FINGERPRINT`
+6. Verify on Scry after each proof: `https://scry.thurin.id/pgp/FINGERPRINT`
 
 ### Order matters
 

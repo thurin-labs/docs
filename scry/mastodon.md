@@ -7,7 +7,7 @@ Verify your Mastodon identity by adding your PGP fingerprint to your profile.
 Go to your Mastodon instance's profile settings and add a metadata field linking to your Scry profile:
 
 - **Label:** `PGP` (or anything you like)
-- **Value:** `https://scry.thurin.id/#/pgp/YOUR_FINGERPRINT`
+- **Value:** `https://scry.thurin.id/pgp/YOUR_FINGERPRINT`
 
 You can use either your full 40-character fingerprint or your 16-character key ID in the URL. Both work.
 

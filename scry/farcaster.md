@@ -11,7 +11,7 @@ Example:
 ```
 Verifying my identity with @thurinlabs
 
-https://scry.thurin.id/#/pgp/YOUR_FINGERPRINT
+https://scry.thurin.id/pgp/YOUR_FINGERPRINT
 ```
 
 The Scry URL contains your fingerprint, so it doubles as both a clickable link and the verification token. Anyone who sees the cast can click through to your Scry profile.

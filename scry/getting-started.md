@@ -74,7 +74,7 @@ You'll need a browser wallet (MetaMask, etc.) and ETH for gas.
    Paste the full signed output back into Signet
 4. **Publish to the registry** — confirm the transaction in your wallet
 
-After publishing, verify on Scry: `https://scry.thurin.id/#/eth/YOUR_ADDRESS`
+After publishing, verify on Scry: `https://scry.thurin.id/eth/YOUR_ADDRESS`
 
 ## 5. Add Your First Proof
 
