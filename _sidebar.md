@@ -14,7 +14,7 @@
 - [PGPRegistry Contract](/contracts)
 
 **Links**
-- [Scry](https://scry.thurin.id)
-- [Signet](https://signet.thurin.id)
-- [Website](https://thurin.id)
+- [Thurin](https://thurin.id)
+- [Signet](https://thurin.id/signet)
+- [Thurin Labs](https://thurinlabs.id)
 - [Codeberg](https://codeberg.org/thurinlabs)

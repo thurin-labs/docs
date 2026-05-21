@@ -61,11 +61,11 @@ You can verify your key is live at: `https://keys.openpgp.org/search?q=YOUR_FING
 
 ## 4. Register on Signet
 
-[Signet](https://signet.thurin.id) creates an on-chain link between your PGP key and your Ethereum address. This is a one-time setup.
+[Signet](https://thurin.id/signet) creates an on-chain link between your PGP key and your Ethereum address. This is a one-time setup.
 
 You'll need a browser wallet (MetaMask, etc.) and ETH for gas.
 
-1. **Connect your wallet** on [signet.thurin.id](https://signet.thurin.id)
+1. **Connect your wallet** on [thurin.id/signet](https://thurin.id/signet)
 2. **Sign your PGP fingerprint with your wallet** — paste your `gpg --fingerprint` output into Signet, then click "Sign with Wallet"
 3. **Sign your ETH address with GnuPG** — Signet shows you a command to run:
    ```bash
@@ -74,7 +74,7 @@ You'll need a browser wallet (MetaMask, etc.) and ETH for gas.
    Paste the full signed output back into Signet
 4. **Publish to the registry** — confirm the transaction in your wallet
 
-After publishing, verify on Scry: `https://scry.thurin.id/eth/YOUR_ADDRESS`
+After publishing, verify on Scry: `https://thurin.id/eth/YOUR_ADDRESS`
 
 ## 5. Add Your First Proof
 

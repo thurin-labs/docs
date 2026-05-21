@@ -59,7 +59,7 @@ Wrap your app (or just the part using identity-kit) in `IdentityKitProvider`. If
 <IdentityKitProvider
   rpcUrl="https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
   neynarApiKey="YOUR_NEYNAR_KEY"
-  scryBaseUrl="https://scry.thurin.id"
+  scryBaseUrl="https://thurin.id"
 >
   <ScryCard ens="vitalik.eth" />
 </IdentityKitProvider>
@@ -69,7 +69,7 @@ Wrap your app (or just the part using identity-kit) in `IdentityKitProvider`. If
 |------|------|---------|-------------|
 | `rpcUrl` | `string` | publicnode | Ethereum RPC endpoint |
 | `neynarApiKey` | `string` | — | Neynar API key for Farcaster proof verification |
-| `scryBaseUrl` | `string` | `https://scry.thurin.id` | Base URL for "View on Scry" links |
+| `scryBaseUrl` | `string` | `https://thurin.id` | Base URL for "View on Scry" links |
 
 ## Hooks
 

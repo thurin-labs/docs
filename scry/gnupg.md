@@ -94,4 +94,4 @@ You can also use the web upload at [keys.openpgp.org/upload](https://keys.openpg
 
 ## Re-registering on Signet
 
-If your on-chain key data is outdated, you may also need to re-register on [Signet](https://signet.thurin.id) so the on-chain key matches the keyserver version. Scry prefers the keyserver copy when available.
+If your on-chain key data is outdated, you may also need to re-register on [Signet](https://thurin.id/signet) so the on-chain key matches the keyserver version. Scry prefers the keyserver copy when available.

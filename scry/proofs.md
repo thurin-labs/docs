@@ -1,6 +1,6 @@
 # Thurin Proofs
 
-Thurin Proofs are a decentralized identity verification system that links your PGP key to your online accounts. By adding cryptographic proofs to your PGP key and publishing verification tokens on supported platforms, you create a verifiable chain of identity that anyone can check using [Scry](https://scry.thurin.id).
+Thurin Proofs are a decentralized identity verification system that links your PGP key to your online accounts. By adding cryptographic proofs to your PGP key and publishing verification tokens on supported platforms, you create a verifiable chain of identity that anyone can check using [Scry](https://thurin.id).
 
 ## How It Works
 
@@ -23,7 +23,7 @@ Anyone can independently verify both directions, confirming that the same person
 
 ## Prerequisites
 
-1. **A PGP key** registered on [Signet](https://signet.thurin.id) (on-chain identity claim)
+1. **A PGP key** registered on [Signet](https://thurin.id/signet) (on-chain identity claim)
 2. **GnuPG** installed locally to edit your key ([managing notations guide](/scry/gnupg))
 3. **A keyserver account** on [keys.openpgp.org](https://keys.openpgp.org) — after adding proof notations, you must upload your updated key so Scry can read the new notations
 
