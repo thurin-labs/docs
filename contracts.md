@@ -7,8 +7,9 @@ The `PGPRegistry` contract stores on-chain PGP-to-Ethereum identity claims creat
 | Item | Value |
 |------|-------|
 | Network | Ethereum Mainnet |
-| Address | `0xf7a45BC662A78a6fb417ED5f52b3766cbf13EbBb` |
+| Address | [`0xf7a45BC662A78a6fb417ED5f52b3766cbf13EbBb`](https://etherscan.io/address/0xf7a45BC662A78a6fb417ED5f52b3766cbf13EbBb) |
 | Deploy Block | 24515891 |
+| Source | [github.com/thurinlabs/signet-pgp-registry](https://github.com/thurinlabs/signet-pgp-registry) |
 
 ## Functions
 
