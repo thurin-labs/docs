@@ -3,7 +3,7 @@
 React SDK for embedding Thurin identity data. Drop-in components and hooks for displaying on-chain identity claims, PGP verification, social proofs, and EFP social graph data.
 
 **npm:** [`@thurinlabs/identity-kit`](https://www.npmjs.com/package/@thurinlabs/identity-kit)
-**Source:** [Codeberg](https://codeberg.org/thurinlabs/identity-kit)
+**Source:** [GitHub](https://github.com/thurinlabs/identity-kit)
 
 ## Install
 
@@ -142,3 +142,27 @@ For static sites, Jekyll blogs, WordPress, or any HTML page — use the standalo
 | `data-theme` | `thurin`, `dark`, or `light` (default: `thurin`) |
 
 The script bundles everything internally. Cards render automatically on page load and for dynamically added elements.
+
+## Card Image (No JavaScript Required)
+
+For places where scripts can't run — GitHub READMEs, forum posts, emails — embed a server-rendered PNG identity card instead. Cards are 640×200, generated on the fly, and cached for an hour.
+
+```
+https://thurin.id/card/ens/:name
+https://thurin.id/card/eth/:address
+https://thurin.id/card/pgp/:fingerprint
+```
+
+A trailing `.png` on the identifier is accepted, which helps platforms that expect an image extension:
+
+```markdown
+[![Thurin identity](https://thurin.id/card/ens/bendoubleu.eth.png)](https://thurin.id/ens/bendoubleu.eth)
+```
+
+| Route | Looks up by |
+|-------|-------------|
+| `/card/ens/:name` | ENS name |
+| `/card/eth/:address` | ETH address |
+| `/card/pgp/:fingerprint` | PGP fingerprint |
+
+The card shows the ENS avatar and name, address, Signet seal count, verified proof count, and EFP follower count — the same live data as `ScryCard`. Full-size 1200×630 share cards are also available at the matching `/og/ens/:name`, `/og/eth/:address`, and `/og/pgp/:fingerprint` routes; those are what social platforms receive automatically when a Scry link is shared, so you rarely need to link them directly.

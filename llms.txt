@@ -675,7 +675,7 @@ If on-chain key data is outdated, re-register on Signet (https://thurin.id/signe
 `@thurinlabs/identity-kit` is an open source React SDK for embedding Thurin identity data.
 
 - **npm:** https://www.npmjs.com/package/@thurinlabs/identity-kit
-- **Source:** https://codeberg.org/thurinlabs/identity-kit
+- **Source:** https://github.com/thurinlabs/identity-kit
 
 ### ScryCard component
 
@@ -719,6 +719,22 @@ For static sites (Jekyll, WordPress, plain HTML), use the standalone embed scrip
 ```
 
 Data attributes: `data-scry-card` (ENS or address, required), `data-theme` (thurin/dark/light, default: thurin). The script bundles everything internally — no React or build tools needed.
+
+### Card Image (No JavaScript Required)
+
+For contexts where scripts can't run (GitHub READMEs, forum posts, emails), embed a server-rendered 640×200 PNG identity card:
+
+- `https://thurin.id/card/ens/:name` — look up by ENS name
+- `https://thurin.id/card/eth/:address` — look up by ETH address
+- `https://thurin.id/card/pgp/:fingerprint` — look up by PGP fingerprint
+
+A trailing `.png` on the identifier is accepted (e.g. `https://thurin.id/card/ens/bendoubleu.eth.png`). Markdown example for a GitHub README:
+
+```markdown
+[![Thurin identity](https://thurin.id/card/ens/bendoubleu.eth.png)](https://thurin.id/ens/bendoubleu.eth)
+```
+
+Cards show the ENS avatar and name, address, Signet seal count, verified proof count, and EFP follower count, generated from live data and cached for an hour. Full-size 1200×630 share cards exist at the matching `/og/ens/:name`, `/og/eth/:address`, and `/og/pgp/:fingerprint` routes — social platforms receive those automatically when a Scry link is shared.
 
 ---
 
@@ -794,6 +810,6 @@ The proof content (gist, TXT record, cast, repo, profile field) should be create
 - Signet: https://thurin.id/signet
 - Thurin Labs: https://thurinlabs.id
 - Documentation: https://docs.thurin.id
-- Codeberg: https://codeberg.org/thurinlabs
+- GitHub: https://github.com/thurinlabs
 - Identity Kit: https://www.npmjs.com/package/@thurinlabs/identity-kit
 - Keyserver: https://keys.openpgp.org

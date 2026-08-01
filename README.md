@@ -28,4 +28,4 @@ A consolidated reference for AI assistants helping users set up Thurin Proofs is
 - [Scry](https://thurin.id) — Look up identities
 - [Signet](https://thurin.id/signet) — Create identity claims
 - [Website](https://thurin.id) — Learn more
-- [Codeberg](https://codeberg.org/thurinlabs) — Source code
+- [GitHub](https://github.com/thurinlabs) — Source code

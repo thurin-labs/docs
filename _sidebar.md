@@ -17,4 +17,4 @@
 - [Thurin](https://thurin.id)
 - [Signet](https://thurin.id/signet)
 - [Thurin Labs](https://thurinlabs.id)
-- [Codeberg](https://codeberg.org/thurinlabs)
+- [GitHub](https://github.com/thurinlabs)
