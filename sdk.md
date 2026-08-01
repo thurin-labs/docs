@@ -114,6 +114,51 @@ const { keyInfo, proofs, isLoading } = usePGPProofs('03E53D807CE38C...')
 // proofs[].provider, proofs[].status, proofs[].displayUrl
 ```
 
+## Core Utilities
+
+The verification and data logic is also exported as plain framework-agnostic functions — no React, no provider. This is the layer the `ScryCard`, the hooks, and the Scry explorer all build on, so a "verified" result is consistent everywhere. Use it directly when you need the validated data behind your own UI.
+
+### Proofs
+
+```ts
+import { identifyProof, verifyProof, displayUrl, proofHref } from '@thurinlabs/identity-kit'
+
+const proof = identifyProof({ name: 'proof@thurin.id', value: 'https://gist.github.com/alice/abc123' })
+const result = await verifyProof(proof, fingerprint, neynarApiKey) // neynarApiKey only for Farcaster
+// → { verified: boolean, reason?: string }
+```
+
+`verifyProof` runs the real per-provider check — for GitHub it confirms the gist is **owned** by the claimed user, so a proof can't be forged by pointing at someone else's gist.
+
+### PGP
+
+```ts
+import { parsePgpKey, verifyAttestation, fetchKeyByFingerprint } from '@thurinlabs/identity-kit'
+
+const keyInfo = await parsePgpKey(armoredKey)
+// → { fingerprint, userIDs, algorithm, created, expires, notations, subkeys } | null
+
+const verification = await verifyAttestation({ pgpPublicKey, pgpSignature, fingerprint, ethAddress })
+// → { verified: boolean, reason?: string }
+```
+
+### EFP
+
+```ts
+import { fetchEFPGraph } from '@thurinlabs/identity-kit'
+
+const graph = await fetchEFPGraph(address)
+// → { followers, following, top8: string[], hasEfp } | null
+```
+
+### Contract constants
+
+```ts
+import { REGISTRY_ADDRESS, REGISTRY_ABI, CONTRACT_DEPLOY_BLOCK } from '@thurinlabs/identity-kit'
+```
+
+`REGISTRY_ABI` is read-only (events + `attestationCount` + `getAttestation`). Apps that write claims need their own ABI with `attest`/`revoke`.
+
 ## Themes
 
 Three built-in themes: `thurin`, `dark`, `light`. All styles are scoped under `[data-scry-theme]` with `scry-` prefixed class names to avoid conflicts with your app's styles.
