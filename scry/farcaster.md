@@ -4,25 +4,15 @@ Verify your Farcaster identity by publishing a cast containing your PGP fingerpr
 
 ## 1. Publish a Proof Cast
 
-Post a cast on Farcaster (via Farcaster or any client). The cast must contain your fingerprint — the rest is up to you.
-
-Example:
+Post a cast on Farcaster (via any client). The cast text must include the `openpgp4fpr:` token with your fingerprint. Use the standard Thurin format so it's self-explanatory:
 
 ```
 Verifying my identity with @thurinlabs
 
-https://thurin.id/pgp/YOUR_FINGERPRINT
-```
-
-The Scry URL contains your fingerprint, so it doubles as both a clickable link and the verification token. Anyone who sees the cast can click through to your Scry profile.
-
-You can also use the explicit format:
-
-```
 thurin-id=openpgp4fpr:YOUR_FINGERPRINT
 ```
 
-Scry only looks for `openpgp4fpr:` followed by your fingerprint anywhere in the cast text.
+You can add any other text — a clickable link to your Scry profile (`https://thurin.id/pgp/YOUR_FINGERPRINT`) is a nice touch — as long as the cast contains `openpgp4fpr:` followed by your fingerprint.
 
 ## 2. Add the Notation to Your PGP Key
 

@@ -178,13 +178,13 @@ openpgp4fpr:FINGERPRINT
 
 Where `FINGERPRINT` is the full 40-character hex PGP fingerprint (case-insensitive).
 
-The recommended format is:
+The recommended format — used consistently across every provider — is:
 
 ```
 thurin-id=openpgp4fpr:FINGERPRINT
 ```
 
-The `thurin-id=` prefix is optional — Scry only checks for the presence of `openpgp4fpr:` followed by a matching fingerprint.
+Lead with the `thurin-id=` label so the proof is self-explanatory. This string works on every provider (the `openpgp4fpr:` token satisfies GitHub, Codeberg, DNS, and Farcaster; the embedded fingerprint satisfies Mastodon). The `thurin-id=` label is not required by verification — Scry only checks for `openpgp4fpr:` followed by a matching fingerprint — so older proofs still work, but new proofs should include it.
 
 ---
 
@@ -342,23 +342,15 @@ gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
 
 ### Step 1: Publish a Proof Cast
 
-Post a public cast on Farcaster (via Warpcast or any client). The cast must contain the fingerprint.
-
-Recommended format (the Scry URL contains the fingerprint and doubles as a clickable link):
+Post a public cast on Farcaster (via Warpcast or any client). The cast text must include the `openpgp4fpr:` token with the fingerprint. Use the standard Thurin format:
 
 ```
 Verifying my identity with @thurinlabs
 
-https://thurin.id/pgp/YOUR_FINGERPRINT
-```
-
-Or the explicit format:
-
-```
 thurin-id=openpgp4fpr:YOUR_FINGERPRINT
 ```
 
-Scry only looks for `openpgp4fpr:` followed by the fingerprint anywhere in the cast text.
+Any other text is fine — a clickable Scry link (`https://thurin.id/pgp/YOUR_FINGERPRINT`) is a nice touch — as long as the cast contains `openpgp4fpr:` followed by the fingerprint.
 
 ### Step 2: Add the Notation to the PGP Key
 
@@ -497,14 +489,12 @@ gpg --keyserver hkps://keys.openpgp.org --send-keys YOUR_FINGERPRINT
 
 ### Step 1: Add Your Fingerprint to Your Mastodon Profile
 
-Go to your Mastodon instance's profile settings and add a metadata field linking to your Scry profile:
+Go to your Mastodon instance's profile settings and add a metadata field:
 
-- **Label:** `PGP` (or anything you like)
-- **Value:** `https://thurin.id/pgp/YOUR_FINGERPRINT`
+- **Label:** `Thurin` (or anything you like)
+- **Value:** `thurin-id=openpgp4fpr:YOUR_FINGERPRINT`
 
-You can use either your full 40-character fingerprint or your 16-character key ID in the URL. Both work.
-
-Alternatively, you can add the Scry link to your bio.
+This is the same format used by every other provider. If you'd prefer a clickable link, use your Scry profile URL instead (`https://thurin.id/pgp/YOUR_FINGERPRINT`) — it also contains your fingerprint. Either works, with your full 40-character fingerprint or your 16-character key ID, and you can use your bio instead of a metadata field.
 
 ### Step 2: Add the Notation to the PGP Key
 

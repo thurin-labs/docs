@@ -47,13 +47,13 @@ openpgp4fpr:FINGERPRINT
 
 Where `FINGERPRINT` is your full 40-character hex PGP fingerprint (case-insensitive).
 
-The recommended format for proof content is:
+The recommended format for proof content — used consistently across every provider — is:
 
 ```
 thurin-id=openpgp4fpr:FINGERPRINT
 ```
 
-This makes the purpose of the proof clear to anyone who sees it. The `thurin-id=` prefix is optional — Scry only checks for the presence of `openpgp4fpr:` followed by a matching fingerprint.
+Lead with the `thurin-id=` label so anyone who sees the proof knows what it is and why it's there. This exact string works on every provider: the `openpgp4fpr:` token satisfies GitHub, Codeberg, DNS, and Farcaster, and the embedded fingerprint satisfies Mastodon. The `thurin-id=` label itself is not required by verification (Scry only checks for `openpgp4fpr:` followed by a matching fingerprint), so proofs created before this convention still work — but new proofs should include it.
 
 ## Verification Flow
 
